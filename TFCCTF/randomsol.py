@@ -1,3 +1,6 @@
+from pwn import *
+io = process('../../TFC/random')
+
 #random
 import ctypes
 import time
@@ -23,5 +26,5 @@ libc.srand(current_time_seconds)
 # Generate and print 10 random numbers
 for i in range(10):
     random_number = libc.rand()
-    io.sendline(str(random_number))
+    io.sendline(str(random_number).encode())
 io.interactive()
